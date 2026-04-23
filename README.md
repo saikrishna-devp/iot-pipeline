@@ -19,9 +19,9 @@ Python Stream Processor
 AWS S3 Bronze / Silver / Gold
   └── Apache Iceberg (ACID table format on Gold layer)
         +
-AWS Timestream (Time-Series DB)
+AWS DynamoDB (Real-Time sensor readings & alerts)
         ↓
-Amazon Athena (SQL Queries on Iceberg Tables)
+Amazon Athena (SQL Queries on S3 Gold layer)
         ↓
 Plotly Dash (Live Dashboard)
 ```
@@ -36,8 +36,8 @@ Plotly Dash (Live Dashboard)
 | Bronze Layer | AWS S3 | Raw data stored exactly as received |
 | Silver Layer | AWS S3 + Parquet | Cleaned, normalised, validated data |
 | Gold Layer | AWS S3 + Apache Iceberg | Aggregated, query-ready tables with ACID |
-| Time-Series DB | AWS Timestream | Fast time-series queries and alerting |
-| Query Engine | Amazon Athena | Serverless SQL on top of Iceberg tables |
+| Real-Time DB | AWS DynamoDB | Fast storage for live readings and alerts |
+| Query Engine | Amazon Athena | Serverless SQL on top of S3 Gold layer |
 | Dashboard | Plotly Dash | Live charts and alerts in the browser |
 
 ## Why Apache Iceberg?
@@ -47,6 +47,14 @@ S3 stores files. Iceberg gives those files full table features:
 - Schema evolution (add columns safely)
 - Time travel (query data as of any point in time)
 - Partition management (faster Athena queries)
+
+## Why DynamoDB?
+
+DynamoDB handles everything real-time:
+- Stores live sensor readings as they arrive
+- Stores anomaly alerts instantly
+- Fast key-value lookups for the dashboard
+- Free tier: 25GB storage, 25 read/write units
 
 ## Project Structure
 
@@ -60,7 +68,7 @@ iot-pipeline/
 │   └── stream_processor.py
 ├── storage/
 │   ├── s3_layer.py
-│   └── timestream_writer.py
+│   └── dynamodb_writer.py
 ├── query/
 │   └── athena_client.py
 ├── dashboard/
@@ -109,7 +117,7 @@ iot-pipeline/
 | Step 3 | Kafka Producer (Sensor.Community to Kafka) |
 | Step 4 | Stream Processor (anomaly detection + aggregations) |
 | Step 5 | S3 Bronze/Silver/Gold + Apache Iceberg |
-| Step 6 | Timestream + Athena |
+| Step 6 | DynamoDB (real-time readings and alerts) |
 | Step 7 | Plotly Dash live dashboard |
 
 ## Author
