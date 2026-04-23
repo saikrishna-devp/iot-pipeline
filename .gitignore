@@ -1,5 +1,7 @@
+# Environment
 .env
-*.env
+
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
@@ -7,11 +9,19 @@ __pycache__/
 venv/
 env/
 .venv/
+
+# AWS
 .aws/
 *.pem
+
+# Logs
 logs/
 *.log
+
+# IDE
 .vscode/
 .idea/
+
+# Data
 *.parquet
 *.json.gz
