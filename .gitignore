@@ -1,0 +1,17 @@
+.env
+*.env
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+venv/
+env/
+.venv/
+.aws/
+*.pem
+logs/
+*.log
+.vscode/
+.idea/
+*.parquet
+*.json.gz
