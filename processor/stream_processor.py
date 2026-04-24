@@ -13,6 +13,8 @@ from collections import defaultdict
 from confluent_kafka import Consumer, Producer, KafkaError
 from loguru import logger
 from config.settings import get_settings
+from storage.s3_layer import write_bronze, write_silver, write_gold
+from storage.dynamodb_writer import write_reading, write_alert
 
 settings = get_settings()
 
@@ -159,15 +161,37 @@ def run():
                 for alert in alerts:
                     publish_alert(alert)
                     logger.warning(f"ALERT: {alert['message']}")
+                    # Write alert to DynamoDB
+                    write_alert(
+                     sensor_id=alert["sensor_id"],
+                     metric=alert["metric"],
+                     value=alert["value"],
+                     threshold=alert["threshold"],
+                     message=alert["message"]
+                    )
+
+                # Write to DynamoDB in real-time
+                write_reading(
+                sensor_id=sensor_id,
+                values=values,
+                country=reading.get("location", {}).get("country")
+            )
 
                 # Buffer for aggregation
                 agg_buffer[sensor_id].append(values)
                 MSG_COUNT += 1
 
-                # Aggregate every N messages
                 if MSG_COUNT % AGG_EVERY == 0:
-                    aggregate_and_publish()
-                    logger.info(f"Processed {MSG_COUNT} messages total")
+                 # Save batch before clearing
+                 raw_batch = [r for readings in list(agg_buffer.values()) 
+                            for r in readings]
+                aggregate_and_publish()
+                logger.info(f"Processed {MSG_COUNT} messages total")
+                # Write to S3 layers
+                if raw_batch:
+                 write_bronze(raw_batch)
+                 df = write_silver(raw_batch)
+                 write_gold(df)
 
             except Exception as e:
                 logger.error(f"Processing error: {e}")
